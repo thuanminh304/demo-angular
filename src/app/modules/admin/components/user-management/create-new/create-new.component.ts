@@ -21,7 +21,11 @@ export class CreateNewComponent implements OnInit {
 
   formUser!: FormGroup;
   submitted: boolean = false;
-  constructor(private fb: FormBuilder,private adminService:AdminService,private message:MessageService) {}
+  constructor(
+    private fb: FormBuilder,
+    private adminService: AdminService,
+    private message: MessageService
+  ) {}
 
   validatePhone(control: AbstractControl) {
     const v = control.value;
@@ -56,17 +60,22 @@ export class CreateNewComponent implements OnInit {
   submitCreateUser() {
     this.submitted = true;
     //loai bo khoang trang
-    if(this.formUser.valid){
+    if (this.formUser.valid) {
       this.formUser.patchValue({
         name: this.formUser.value.name.replace(/\s+/g, ' '),
         age: +this.formUser.value.age,
       });
-  
+
+      if (this.formUser.value.age <= 16) {
+        this.formUser.value.address = '';
+      }
+
       this.adminService.createNewUser(this.formUser.value).subscribe(() => {
         this.formUser.reset();
         this.visibleCreate.emit(false);
+        this.submitted = false;
       });
-  
+
       this.message.add({
         severity: 'success',
         summary: 'Created success !',
@@ -74,7 +83,6 @@ export class CreateNewComponent implements OnInit {
         key: 'create',
       });
     }
-    
   }
 
   onCancel(e: any) {

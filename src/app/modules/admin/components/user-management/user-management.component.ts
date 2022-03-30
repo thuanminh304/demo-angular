@@ -42,20 +42,19 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
 
   customers: IUserModel[] = [];
   selectedCustomers: IUserModel[] = [];
-
-  loading: boolean = true;
-
   dataZipcode!: IZipcodeModel[];
   dataUserDetail!: IUserModel;
+  listALlUser!: IUserModel[];
+  dataCompanyGroup!: ICompanyGroupModel[];
 
   visibleSidebar!: boolean;
   visibleSidebarEdit!: boolean;
-  dataCompanyGroup!: ICompanyGroupModel[];
+  loading: boolean = true;
+
   dataAllCompany: string[] = [];
   valueGlobalSearch!: string;
-
   ageFromChart!: string;
-  listALlUser!: IUserModel[];
+
   pageSize: number = 5;
   pageCurrent: number = 1;
   totalRecord!: number;
@@ -205,6 +204,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
         target: event.target,
         message: 'Are you sure that you want to remove this user?',
         icon: 'pi pi-exclamation-triangle',
+        key: 'remove' + idUser,
         accept: () => {
           this.adminService.removeUser(idUser).subscribe(() => {
             this.getAllUser();
@@ -231,6 +231,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       target: event.target,
       message: 'Are you sure that you want to remove this users?',
       icon: 'pi pi-exclamation-triangle',
+      key:'multiRemove',
       accept: () => {
         obs.subscribe((data: any) => {
           this.adminService.removeUser(data).subscribe(() => {

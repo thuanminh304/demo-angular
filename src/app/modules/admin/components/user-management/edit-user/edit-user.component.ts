@@ -1,10 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -100,11 +94,16 @@ export class EditUserComponent implements OnInit {
         age: +this.formUserEdit.value.age,
       });
 
+      if (this.formUserEdit.value.age <= 16) {
+        this.formUserEdit.value.address = '';
+      }
+
       this.adminService
         .updateUser(idUser, this.formUserEdit.value)
         .subscribe(() => {
           this.formUserEdit.reset();
           this.sidebarEdit.emit(false);
+          this.submitted = false;
         });
 
       this.message.add({
