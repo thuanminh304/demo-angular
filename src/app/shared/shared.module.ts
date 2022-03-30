@@ -4,6 +4,7 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { PrimeNGModule } from './modules/prime-ng/prime-ng.module';
 import { SkeletonDirective } from './components/skeleton/skeleton.component';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
 
 
@@ -12,6 +13,7 @@ import { SkeletonDirective } from './components/skeleton/skeleton.component';
     SidebarComponent,
     NavbarComponent,
     SkeletonDirective,
+    PageNotFoundComponent,
   ],
   imports: [
     CommonModule,
