@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CreateNewComponent } from './create-new.component';
+import { CreateNewComponent } from './form-user.component';
 
 describe('CreateNewComponent', () => {
   let component: CreateNewComponent;

@@ -33,6 +33,8 @@ export class SidebarComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.adminService._isHide.subscribe((isHide) => {
+    this.isHide=isHide
+
       this.items = [
         {
           label: isHide ? '' : 'User',

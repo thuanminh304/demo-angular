@@ -47,8 +47,6 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   listALlUser!: IUserModel[];
   dataCompanyGroup!: ICompanyGroupModel[];
 
-  visibleSidebar!: boolean;
-  visibleSidebarEdit!: boolean;
   loading: boolean = true;
 
   dataAllCompany: string[] = [];
@@ -59,15 +57,28 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   pageCurrent: number = 1;
   totalRecord!: number;
 
-  receiveValueVisibleCreate(e: any) {
-    this.visibleSidebar = e;
+  displayModal!: boolean;
+  isCreate: boolean = false;
+  isEdit: boolean = false;
+  headerCreate: string = 'Create New User';
+  headerEdit: string = 'Edit User';
+  
+  fieldName: any[] = [
+    { field: 'name', input: true, viewchild: '#nameInput' },
+    { field: 'mail', input: true, viewchild: '#mailInput' },
+    { field: 'age', input: true, viewchild: 'ageInput' },
+    { field: 'phone', input: true, viewchild: '#phoneInput' },
+    { field: 'address', input: true, viewchild: '#addressInput' },
+    { field: 'zipcode', input: false, viewchild: '#zipcodeInput' },
+    { field: 'company', input: false, viewchild: '#companyInput' },
+  ];
+
+  receiveValueVisibleDialog(e: any) {
+    this.displayModal = e;
     this.getAllUser();
+    this.router.navigate(['/admin/user']);
   }
 
-  receiveValueSidebarEdit(e: any) {
-    this.visibleSidebarEdit = e;
-    this.getAllUser();
-  }
   constructor(
     private adminService: AdminService,
     private primengConfig: PrimeNGConfig,
@@ -78,56 +89,20 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     private message: MessageService
   ) {}
   onPagi(e: any) {
+    console.log(e);
     const page = Math.ceil((e.first + 1) / e.rows);
     this.pageCurrent = page;
     this.pageSize = e.rows;
 
     //theo dõi queryparams để search theo đúng field
     this.activeRoute.queryParamMap.subscribe((data) => {
-      if (data.has('name')) {
+      console.log(data);
+
+      const field = data['keys'][0];
+      if (field !== 'p' && data.has(field)) {
         this.router.navigate(['/admin/user'], {
           queryParams: {
-            name: this.nameInput.nativeElement.value,
-            p: this.pageCurrent,
-            l: this.pageSize,
-          },
-        });
-      } else if (data.has('mail')) {
-        this.router.navigate(['/admin/user'], {
-          queryParams: {
-            mail: this.mailInput.nativeElement.value,
-            p: this.pageCurrent,
-            l: this.pageSize,
-          },
-        });
-      } else if (data.has('age')) {
-        this.router.navigate(['/admin/user'], {
-          queryParams: {
-            age: this.ageInput.nativeElement.value,
-            p: this.pageCurrent,
-            l: this.pageSize,
-          },
-        });
-      } else if (data.has('phone')) {
-        this.router.navigate(['/admin/user'], {
-          queryParams: {
-            phone: this.phoneInput.nativeElement.value,
-            p: this.pageCurrent,
-            l: this.pageSize,
-          },
-        });
-      } else if (data.has('address')) {
-        this.router.navigate(['/admin/user'], {
-          queryParams: {
-            address: this.addressInput.nativeElement.value,
-            p: this.pageCurrent,
-            l: this.pageSize,
-          },
-        });
-      } else if (data.has('search')) {
-        this.router.navigate(['/admin/user'], {
-          queryParams: {
-            search: this.input.nativeElement.value,
+            [field]: data.get(field),
             p: this.pageCurrent,
             l: this.pageSize,
           },
@@ -185,6 +160,13 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     });
 
     this.primengConfig.ripple = true;
+
+    this.searchService.listAllUser$.subscribe((data: IUserModel[]) => {
+      if (data.length !== 0) {
+        console.log('first');
+        this.customers = data;
+      }
+    });
   }
 
   getAllUser() {
@@ -231,13 +213,13 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       target: event.target,
       message: 'Are you sure that you want to remove this users?',
       icon: 'pi pi-exclamation-triangle',
-      key:'multiRemove',
+      key: 'multiRemove',
       accept: () => {
         obs.subscribe((data: any) => {
-          this.adminService.removeUser(data).subscribe(() => {
-            this.getAllUser();
-          });
+          this.adminService.removeUser(data).subscribe(() => {});
         });
+        this.getAllUser();
+
         this.totalRecord = this.totalRecord - this.selectedCustomers.length;
 
         this.message.add({
@@ -255,9 +237,12 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   }
 
   onShowEdit(idUser: string) {
+    this.displayModal = true;
+    console.log(idUser);
+    this.isCreate = false;
+    this.isEdit = true;
     const index = this.customers.findIndex((item) => item.id === idUser);
     if (index !== -1) {
-      this.visibleSidebarEdit = true;
       this.router.navigate(['/admin/user'], {
         queryParams: {
           idUser: idUser,
@@ -265,7 +250,19 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       });
     }
   }
+  onShowCreate() {
+    this.displayModal = true;
+    this.isEdit = false;
+    this.isCreate = true;
+  }
+  onHideDialog() {
+    console.log('first');
+    this.displayModal = false;
+    this.isEdit = false;
+    this.isCreate = false;
+  }
 
+ 
   //filter global and field
   globalSearchUser(evt: any) {
     //xét lại valut field='' khi thực hiện search global
@@ -275,151 +272,30 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     this.addressInput.nativeElement.value = '';
     this.phoneInput.nativeElement.value = '';
 
-    const searchText = evt.target.value.trim();
-    this.router.navigate(['/admin/user'], {
-      queryParams: {
-        search: searchText,
-        p: this.pageCurrent,
-        l: this.pageSize,
-      },
-    });
-    this.subject.next(searchText);
-    this.loading = true;
+    this.applyFilter(evt, 'search');
   }
 
-  filterName(evt: any) {
+  applyFilter(evt: any, field: string) {
     const searchText = evt.target.value.trim();
     this.router.navigate(['/admin/user'], {
       queryParams: {
-        name: searchText,
+        [field]: searchText,
         p: this.pageCurrent,
         l: this.pageSize,
       },
     });
     this.subject.next(searchText);
-    this.loading = true;
-  }
-
-  filterAge(evt: any) {
-    const searchText = evt.target.value.trim();
-    this.router.navigate(['/admin/user'], {
-      queryParams: {
-        age: searchText,
-        p: this.pageCurrent,
-        l: this.pageSize,
-      },
-    });
-    this.subject.next(searchText);
-    this.loading = true;
-  }
-
-  filterMail(evt: any) {
-    const searchText = evt.target.value.trim();
-    this.router.navigate(['/admin/user'], {
-      queryParams: {
-        mail: searchText,
-        p: this.pageCurrent,
-        l: this.pageSize,
-      },
-    });
-    this.subject.next(searchText);
-    this.loading = true;
-  }
-
-  filterPhone(evt: any) {
-    const searchText = evt.target.value.trim();
-    this.router.navigate(['/admin/user'], {
-      queryParams: {
-        phone: searchText,
-        p: this.pageCurrent,
-        l: this.pageSize,
-      },
-    });
-    this.subject.next(searchText);
-    this.loading = true;
-  }
-
-  filterAddress(evt: any) {
-    const searchText = evt.target.value.trim();
-    this.router.navigate(['/admin/user'], {
-      queryParams: {
-        address: searchText,
-        p: this.pageCurrent,
-        l: this.pageSize,
-      },
-    });
-    this.subject.next(searchText);
-    this.loading = true;
+    // this.loading = true;
   }
 
   //theo dõi giá trị input và tìm kiếm sau 1s
 
   ngAfterViewInit(): void {
-    this.searchService.fieldSearchDetail(this.input).subscribe((searchText) => {
-      this.searchService.globalSearch(searchText).subscribe((data: any) => {
-        this.loading = false;
-        this.customers = data;
-        if (searchText !== '') {
-          this.totalRecord = data.length;
-        } else {
-          this.totalRecord = this.listALlUser.length;
-        }
-      });
-    });
-
-    this.searchService
-      .fieldSearchDetail(this.nameInput)
-      .subscribe((searchText) => {
-        this.searchService
-          .fieldSearch('name', searchText)
-          .subscribe((data: IUserModel[]) => {
-            this.loading = false;
-            this.customers = data;
-          });
-      });
-
-    this.searchService
-      .fieldSearchDetail(this.ageInput)
-      .subscribe((searchText) => {
-        this.searchService
-          .fieldSearch('age', searchText)
-          .subscribe((data: IUserModel[]) => {
-            this.loading = false;
-            this.customers = data;
-          });
-      });
-
-    this.searchService
-      .fieldSearchDetail(this.mailInput)
-      .subscribe((searchText) => {
-        this.searchService
-          .fieldSearch('mail', searchText)
-          .subscribe((data: IUserModel[]) => {
-            this.loading = false;
-            this.customers = data;
-          });
-      });
-
-    this.searchService
-      .fieldSearchDetail(this.phoneInput)
-      .subscribe((searchText) => {
-        this.searchService
-          .fieldSearch('phone', searchText)
-          .subscribe((data: IUserModel[]) => {
-            this.loading = false;
-            this.customers = data;
-          });
-      });
-
-    this.searchService
-      .fieldSearchDetail(this.addressInput)
-      .subscribe((searchText) => {
-        this.searchService
-          .fieldSearch('address', searchText)
-          .subscribe((data: IUserModel[]) => {
-            this.loading = false;
-            this.customers = data;
-          });
-      });
+    this.searchService.fieldSearchDetail('search', this.input);
+    this.searchService.fieldSearchDetail('mail', this.mailInput);
+    this.searchService.fieldSearchDetail('name', this.nameInput);
+    this.searchService.fieldSearchDetail('age', this.ageInput);
+    this.searchService.fieldSearchDetail('phone', this.phoneInput);
+    this.searchService.fieldSearchDetail('address', this.addressInput);
   }
 }

@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './admin.component';
 import { ChartManagementComponent } from './components/chart-management/chart-management.component';
-import { CreateNewComponent } from './components/user-management/create-new/create-new.component';
+import { CreateNewComponent } from './components/user-management/form-user/form-user.component';
 import { UserManagementComponent } from './components/user-management/user-management.component';
 
 const routes: Routes = [

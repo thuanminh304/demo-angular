@@ -1,11 +1,15 @@
 <section class="sidebar">
-  <div class="logo">
+  <div
+    class="logo flex align-items-center"
+    [style.width]="isHide ? '100%' : '30%'"
+  >
     <img
-      class="cursor-pointer"
+      class="cursor-pointer mr-2"
       routerLink="/admin/user"
       src="../../../../assets/common/images/logo-fpt-software.png"
       alt=""
     />
+    <p class="text-white text-3xl font-bold" *ngIf="!isHide">GE Solution</p>
   </div>
   <div class="menu">
     <p-menu styleClass="list__menu " [model]="items"></p-menu>

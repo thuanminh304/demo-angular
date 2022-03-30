@@ -1,18 +1,23 @@
 <!-- //sidebar create new -->
-<p-sidebar
-  [(visible)]="visibleSidebar"
-  position="right"
-  [baseZIndex]="10000"
-  styleClass="p-sidebar-md"
-  [modal]="false"
-  [showCloseIcon]="false"
+
+<p-dialog
+  *ngIf="(isCreate && !isEdit) || (!isCreate && isEdit)"
+  [header]="isCreate && !isEdit ? headerCreate : headerEdit"
+  [(visible)]="displayModal"
+  [modal]="true"
+  [style]="{ width: '50vw' }"
+  [draggable]="true"
+  [resizable]="true"
+  (onHide)="onHideDialog()"
 >
-  <app-create-new
-    (visibleCreate)="receiveValueVisibleCreate($event)"
+  <app-form-user
+    (visibleDialog)="receiveValueVisibleDialog($event)"
     [dataCompanyGroup]="dataCompanyGroup"
     [dataZipcode]="dataZipcode"
-  ></app-create-new>
-</p-sidebar>
+    [isCreate]="isCreate"
+    [isEdit]="isEdit"
+  ></app-form-user>
+</p-dialog>
 
 <p-confirmPopup
   key="multiRemove"
@@ -25,6 +30,11 @@
   key="multiRemove"
 ></p-toast>
 
+<p-toast
+  [showTransitionOptions]="'100ms'"
+  [hideTransitionOptions]="'100ms'"
+  key="create"
+></p-toast>
 <!-- main content -->
 <section class="user__management">
   <div class="table-header">
@@ -46,7 +56,7 @@
     <div class="create__new__user">
       <p-button
         label="Create New"
-        (click)="visibleSidebar = true"
+        (click)="onShowCreate()"
         icon="pi pi-user-plus"
         class="btn-create mr-1"
         iconPos="left"
@@ -82,7 +92,7 @@
     (onPage)="onPagi($event)"
     [rows]="5"
     [totalRecords]="customers.length"
-    [rowsPerPageOptions]="[5, 10]"
+    [rowsPerPageOptions]="[1, 2, 5, 10]"
     [showCurrentPageReport]="true"
     currentPageReportTemplate=" {first} to {last} of {totalRecords} entries"
     [paginator]="true"
@@ -100,29 +110,19 @@
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 3rem" pFrozenColumn></th>
-        <th pSortableColumn="name" pFrozenColumn style="width: 200px">
-          Name <p-sortIcon field="name"></p-sortIcon>
-        </th>
-        <th pSortableColumn="mail" style="width: 200px">
-          Mail <p-sortIcon field="mail"></p-sortIcon>
-        </th>
-        <th pSortableColumn="age" style="width: 200px">
-          Age
-          <p-sortIcon field="age"></p-sortIcon>
-        </th>
-        <th pSortableColumn="phone" style="width: 200px">
-          Phone <p-sortIcon field="phone"></p-sortIcon>
-        </th>
-        <th pSortableColumn="address" style="width: 200px">
-          Address <p-sortIcon field="address"></p-sortIcon>
-        </th>
-        <th pSortableColumn="zipcode" style="width: 200px">
-          Zipcode <p-sortIcon field="zipcode"></p-sortIcon>
-        </th>
-
-        <th pSortableColumn="company" style="width: 200px">
-          Company <p-sortIcon field="company"></p-sortIcon>
-        </th>
+        <!-- ngfor -->
+        <ng-container *ngFor="let value of fieldName">
+          <th
+            [pSortableColumn]="value.field"
+            pFrozenColumn
+            [frozen]="value.field === 'name'"
+            style="width: 200px"
+          >
+            {{ value.field | upperFirstLetter }}
+            <p-sortIcon [field]="value.field"></p-sortIcon>
+          </th>
+        </ng-container>
+        <!--  -->
         <th
           pFrozenColumn
           alignFrozen="right"
@@ -140,12 +140,29 @@
         </th>
 
         <!-- search each column -->
+        <!-- ngfor -->
+        <!-- <ng-container *ngFor="let value of fieldName">
+          <th
+            pFrozenColumn
+            [frozen]="value.field === 'name'"
+            *ngIf="value.input === true"
+            style="width: 200px"
+          >
+            <input
+              pInputText
+              (input)="filterName($event)"
+              type="text"
+              [placeholder]="'Search by ' + value.field"
+              class="p-column-filter"
+            />
+          </th>
+        </ng-container> -->
 
         <th pFrozenColumn style="width: 200px">
           <input
             pInputText
             #nameInput
-            (input)="filterName($event)"
+            (input)="applyFilter($event, 'name')"
             type="text"
             placeholder="Search by Name"
             class="p-column-filter"
@@ -155,7 +172,7 @@
         <th style="width: 200px">
           <input
             #mailInput
-            (input)="filterMail($event)"
+            (input)="applyFilter($event, 'mail')"
             pInputText
             type="text"
             placeholder="Search by mail"
@@ -166,7 +183,7 @@
         <th style="width: 200px">
           <input
             #ageInput
-            (input)="filterAge($event)"
+            (input)="applyFilter($event, 'age')"
             pInputText
             type="text"
             placeholder="Search by age"
@@ -179,7 +196,7 @@
             pInputText
             type="text"
             #phoneInput
-            (input)="filterPhone($event)"
+            (input)="applyFilter($event, 'phone')"
             placeholder="Search by phone"
             class="p-column-filter"
           />
@@ -190,12 +207,13 @@
             pInputText
             type="text"
             #addressInput
-            (input)="filterAddress($event)"
+            (input)="applyFilter($event, 'address')"
             placeholder="Search by address"
             class="p-column-filter"
           />
         </th>
 
+        <!--  -->
         <th style="width: 200px">
           <p-dropdown
             [options]="dataZipcode"
@@ -237,56 +255,22 @@
           ></p-tableCheckbox>
         </td>
 
-        <td pFrozenColumn style="width: 200px">
-          <span class="p-column-title">Name</span>
-          {{ customer.name }}
-        </td>
-        <td style="width: 200px">
-          <span class="p-column-title">Mail</span>
-          {{ customer.mail }}
-        </td>
-        <td style="width: 200px">
-          <span class="p-column-title">Age</span>
-          <span class="image-text">{{ customer.age }}</span>
-        </td>
-
-        <td style="width: 200px">
-          <span class="p-column-title">Phone</span>
-          {{ customer.phone }}
-        </td>
-
-        <td style="width: 200px">
-          <span class="p-column-title">Address</span>
-          {{ customer.address }}
-        </td>
-
-        <td style="width: 200px">
-          <span class="p-column-title">Zipcode</span>
-          <span>{{ customer.zipcode }}</span>
-        </td>
-
-        <td style="width: 200px">
-          <span class="p-column-title">Company</span>
-          <span>{{ customer.company }}</span>
-        </td>
-
+        <!-- ngfor -->
+        <ng-container *ngFor="let value of fieldName">
+          <td
+            pFrozenColumn
+            [frozen]="value.field === 'name'"
+            style="width: 200px"
+          >
+            <span class="p-column-title">{{
+              value.field | upperFirstLetter
+            }}</span>
+            {{ customer[value.field] }}
+          </td>
+        </ng-container>
+        <!--  -->
         <td style="text-align: center" alignFrozen="right" pFrozenColumn>
           <!-- //sidebar edit -->
-          <p-sidebar
-            [(visible)]="visibleSidebarEdit"
-            position="right"
-            [baseZIndex]="10000"
-            styleClass="p-sidebar-md"
-            [modal]="false"
-            [showCloseIcon]="false"
-          >
-            <app-edit-user
-              *ngIf="visibleSidebarEdit"
-              (sidebarEdit)="receiveValueSidebarEdit($event)"
-              [dataCompanyGroup]="dataCompanyGroup"
-              [dataZipcode]="dataZipcode"
-            ></app-edit-user>
-          </p-sidebar>
 
           <button
             pButton

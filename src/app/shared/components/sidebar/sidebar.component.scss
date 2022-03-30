@@ -4,9 +4,10 @@
 
 .sidebar {
   .logo {
-    padding: 10px;
+    transition: width 0.5s;
     img {
-      width: 100%;
+      width: 40px;
+      margin: 5px
     }
   }
   .menu {

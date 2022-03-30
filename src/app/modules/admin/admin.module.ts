@@ -7,11 +7,9 @@ import { UserManagementComponent } from './components/user-management/user-manag
 import { ChartManagementComponent } from './components/chart-management/chart-management.component';
 import { HttpClientModule } from '@angular/common/http';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { CreateNewComponent } from './components/user-management/create-new/create-new.component';
+import { CreateNewComponent } from './components/user-management/form-user/form-user.component';
 import { PrimeNGModule } from '../../shared/modules/prime-ng/prime-ng.module';
-import { ConfirmationService, MessageService } from 'primeng/api';
 import { SidebarModule } from 'primeng/sidebar';
-import { EditUserComponent } from './components/user-management/edit-user/edit-user.component';
 import { UpperFirstLetterPipe } from 'src/app/shared/pipes/upper-first-letter.pipe';
 
 @NgModule({
@@ -20,7 +18,6 @@ import { UpperFirstLetterPipe } from 'src/app/shared/pipes/upper-first-letter.pi
     UserManagementComponent,
     ChartManagementComponent,
     CreateNewComponent,
-    EditUserComponent,
     UpperFirstLetterPipe
   ],
   imports: [
