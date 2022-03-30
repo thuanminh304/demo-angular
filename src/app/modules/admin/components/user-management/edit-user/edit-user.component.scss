@@ -1,0 +1,25 @@
+
+@import '../../../../../../assets/common/scss/mixin.scss';
+
+.edit__user {
+  margin: 0 50px;
+  height: 100vh;
+  text-align: left;
+  .form__user {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 20px;
+
+    .field__item {
+      margin-bottom: 30px;
+
+      h5 {
+        margin-bottom: 10px;
+      }
+    }
+  }
+}
+
+.loader {
+  @include loader;
+}

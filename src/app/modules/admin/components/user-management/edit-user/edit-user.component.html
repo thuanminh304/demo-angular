@@ -1,0 +1,213 @@
+<ng-template
+  #showErrors
+  let-form="form"
+  let-field="field"
+  let-error="error"
+  let-otherError="otherError"
+  let-message="message"
+  let-otherMessage="otherMessage"
+>
+  <div
+    class="styleErrorInput"
+    *ngIf=" (form.controls[field].touched || this.submitted) && form.controls[field].invalid"
+  >
+    <p *ngIf="form.controls[field].errors['required']">
+      * {{ field | upperFirstLetter }} is required.
+    </p>
+    <p *ngIf="error && form.controls[field].errors[error]">* {{ message }}</p>
+    <p *ngIf="otherError && form.controls[field].errors[otherError]">
+      * {{ otherMessage }}
+    </p>
+  </div>
+</ng-template>
+
+<section class="edit__user">
+  <h2 class="title">EDIT USER</h2>
+
+<appSkeleton *ngIf="!formUserEdit"></appSkeleton>
+
+  <form
+    [formGroup]="formUserEdit"
+    (ngSubmit)="submitEditUser(detailUser.id)"
+    *ngIf="formUserEdit"
+  >
+    <div class="form__user">
+      <div class="field__item field__name">
+        <h5>Name:</h5>
+        <input
+          type="text"
+          [value]="detailUser?.name"
+          pInputText
+          formControlName="name"
+          pattern="^[a-zA-Z ]*$"
+        />
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'name',
+            error: 'maxlength',
+            otherError: 'pattern',
+            message: 'The length of name is 10',
+            otherMessage: 'Only characters, not numberic'
+          }"
+        >
+        </ng-container>
+      </div>
+
+      <div class="field__item field__age">
+        <h5>Age:</h5>
+        <span [ngClass]="age?.value > 16 ? 'p-input-icon-right' : ''">
+          <i class="pi loader" *ngIf="age?.value > 16"></i>
+          <input
+            type="text"
+            [value]="detailUser?.age"
+            pInputText
+            formControlName="age"
+            pattern="^[0-9]{1,}$"
+          />
+
+          <ng-container
+            [ngTemplateOutlet]="showErrors"
+            [ngTemplateOutletContext]="{
+              form: formUserEdit,
+              field: 'age',
+              error: 'pattern',
+              message: 'Only numberic'
+            }"
+          >
+          </ng-container>
+        </span>
+      </div>
+
+      <div class="field__item field__mail">
+        <h5>Mail:</h5>
+        <input
+          [value]="detailUser?.mail"
+          type="text"
+          pInputText
+          formControlName="mail"
+          pattern="^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$"
+        />
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'mail',
+            error: 'pattern',
+            message: 'Invalid mail.'
+          }"
+        >
+        </ng-container>
+      </div>
+
+      <div *ngIf="age?.value > 16" class="field__item field__address">
+        <h5>Address:</h5>
+
+        <input
+          type="text"
+          [value]="detailUser?.address"
+          pInputText
+          formControlName="address"
+        />
+      </div>
+
+      <div class="field__item field__phone">
+        <h5>Phone:</h5>
+        <input
+          [value]="detailUser?.phone"
+          type="text"
+          pInputText
+          formControlName="phone"
+          pattern="^[0-9]{1,}$"
+        />
+
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'phone',
+            error: 'lengthPhone',
+            message: 'The length phone is 10.',
+            otherError: 'pattern',
+            otherMessage: 'Invalid phone.'
+          }"
+        >
+        </ng-container>
+      </div>
+
+      <div class="field__item field__zipcode">
+        <h5>Zipcode:</h5>
+        <p-dropdown
+          [options]="dataZipcode"
+          optionLabel="code"
+          optionValue="code"
+          placeholder="Select"
+          formControlName="zipcode"
+        ></p-dropdown>
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'zipcode'
+          }"
+        >
+        </ng-container>
+      </div>
+
+      <div class="field__item field__companyGroup">
+        <h5>Company Group:</h5>
+        <p-dropdown
+          (onChange)="onChangeCG($event)"
+          [options]="dataCompanyGroup"
+          optionLabel="code"
+          placeholder="Select"
+          formControlName="companyGroup"
+        >
+        </p-dropdown>
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'companyGroup'
+          }"
+        >
+        </ng-container>
+      </div>
+      <div class="field__item field__companyGroup">
+        <h5>Company:</h5>
+        <p-dropdown
+          [options]="dataDetailCompany"
+          placeholder="Select"
+          formControlName="company"
+        >
+        </p-dropdown>
+        <ng-container
+          [ngTemplateOutlet]="showErrors"
+          [ngTemplateOutletContext]="{
+            form: formUserEdit,
+            field: 'company'
+          }"
+        >
+        </ng-container>
+      </div>
+    </div>
+
+    <p-toast
+      [showTransitionOptions]="'100ms'"
+      [hideTransitionOptions]="'100ms'"
+      key="edit"
+    ></p-toast>
+    <button
+      pButton
+      type="submit"
+      style="margin-right: 30px"
+      [disabled]="formUserEdit.invalid"
+    >
+      Edit
+    </button>
+    <button pButton class="p-button-secondary" (click)="onCancel($event)">
+      Cancel
+    </button>
+  </form>
+</section>

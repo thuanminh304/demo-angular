@@ -1,0 +1,10 @@
+@import "../../../../assets/common/scss/variables.scss";
+
+::ng-deep .p-tabmenu {
+  .p-tabmenu-nav {
+
+    .p-tabmenuitem .p-menuitem-link {
+      font-size: $fs14;
+    }
+  }
+}

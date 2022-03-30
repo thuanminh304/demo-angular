@@ -1,0 +1,11 @@
+@import "../../../../../assets/common/scss/variables.scss";
+
+.chart__management {
+  margin: 30px 50px;
+  .chart__age {
+    h2 {
+      font-size: $fs32;
+      text-align: center;
+    }
+  }
+}

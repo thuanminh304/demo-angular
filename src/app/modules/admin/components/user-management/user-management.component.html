@@ -1,0 +1,324 @@
+<!-- //sidebar create new -->
+<p-sidebar
+  [(visible)]="visibleSidebar"
+  position="right"
+  [baseZIndex]="10000"
+  styleClass="p-sidebar-md"
+  [modal]="false"
+  [showCloseIcon]="false"
+>
+  <app-create-new
+    (visibleCreate)="receiveValueVisibleCreate($event)"
+    [dataCompanyGroup]="dataCompanyGroup"
+    [dataZipcode]="dataZipcode"
+  ></app-create-new>
+</p-sidebar>
+
+<p-confirmPopup
+  [showTransitionOptions]="'100ms'"
+  [hideTransitionOptions]="'100ms'"
+></p-confirmPopup>
+<p-toast
+  [showTransitionOptions]="'100ms'"
+  [hideTransitionOptions]="'100ms'"
+  key="multiRemove"
+></p-toast>
+
+<!-- main content -->
+<section class="user__management">
+  <div class="table-header">
+    <h2>List of Users</h2>
+  </div>
+
+  <div class="toolbar__table">
+    <div class="p-input-icon-left search__table">
+      <i class="pi pi-search"></i>
+      <input
+        #searchvalue
+        pInputText
+        type="text"
+        (keyup)="globalSearchUser($event)"
+        placeholder="Search"
+      />
+    </div>
+
+    <div class="create__new__user">
+      <p-button
+        label="Create New"
+        (click)="visibleSidebar = true"
+        icon="pi pi-user-plus"
+        class="btn-create mr-1"
+        iconPos="left"
+      >
+      </p-button>
+
+      <button
+        pButton
+        label="Multiple Delete
+        ({{ selectedCustomers.length }}) "
+        icon="pi pi-trash"
+        iconPos="left"
+        class="p-button-danger"
+        (click)="multipleRemove($event)"
+        [disabled]="!selectedCustomers || selectedCustomers.length === 0"
+      ></button>
+    </div>
+  </div>
+
+  <p-table
+    #dt
+    class="table__user"
+    [value]="customers"
+    [(selection)]="selectedCustomers"
+    dataKey="id"
+    styleClass="p-datatable-customers"
+    [rowHover]="true"
+    selectionMode="multiple"
+    responsiveLayout="stacks"
+    [loading]="loading"
+    [filterDelay]="1000"
+    scrollDirection="both"
+    (onPage)="onPagi($event)"
+    [rows]="5"
+    [totalRecords]="customers.length"
+    [rowsPerPageOptions]="[5, 10]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate=" {first} to {last} of {totalRecords} entries"
+    [paginator]="true"
+    [scrollable]="true"
+    [globalFilterFields]="[
+      'name',
+      'age',
+      'phone',
+      'address',
+      'mail',
+      'zipcode',
+      'company'
+    ]"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 3rem" pFrozenColumn></th>
+        <th pSortableColumn="name" pFrozenColumn style="width: 200px">
+          Name <p-sortIcon field="name"></p-sortIcon>
+        </th>
+        <th pSortableColumn="mail" style="width: 200px">
+          Mail <p-sortIcon field="mail"></p-sortIcon>
+        </th>
+        <th pSortableColumn="age" style="width: 200px">
+          Age
+          <p-sortIcon field="age"></p-sortIcon>
+        </th>
+        <th pSortableColumn="phone" style="width: 200px">
+          Phone <p-sortIcon field="phone"></p-sortIcon>
+        </th>
+        <th pSortableColumn="address" style="width: 200px">
+          Address <p-sortIcon field="address"></p-sortIcon>
+        </th>
+        <th pSortableColumn="zipcode" style="width: 200px">
+          Zipcode <p-sortIcon field="zipcode"></p-sortIcon>
+        </th>
+
+        <th pSortableColumn="company" style="width: 200px">
+          Company <p-sortIcon field="company"></p-sortIcon>
+        </th>
+        <th
+          pFrozenColumn
+          alignFrozen="right"
+          style="width: 8rem; padding: 1rem 2rem"
+        >
+          Actions
+        </th>
+      </tr>
+
+      <tr>
+        <th pFrozenColumn>
+          <p-tableHeaderCheckbox
+            (click)="handleCheckbox($event)"
+          ></p-tableHeaderCheckbox>
+        </th>
+
+        <!-- search each column -->
+
+        <th pFrozenColumn style="width: 200px">
+          <input
+            pInputText
+            #nameInput
+            (input)="filterName($event)"
+            type="text"
+            placeholder="Search by Name"
+            class="p-column-filter"
+          />
+        </th>
+
+        <th style="width: 200px">
+          <input
+            #mailInput
+            (input)="filterMail($event)"
+            pInputText
+            type="text"
+            placeholder="Search by mail"
+            class="p-column-filter"
+          />
+        </th>
+
+        <th style="width: 200px">
+          <input
+            #ageInput
+            (input)="filterAge($event)"
+            pInputText
+            type="text"
+            placeholder="Search by age"
+            class="p-column-filter"
+          />
+        </th>
+
+        <th style="width: 200px">
+          <input
+            pInputText
+            type="text"
+            #phoneInput
+            (input)="filterPhone($event)"
+            placeholder="Search by phone"
+            class="p-column-filter"
+          />
+        </th>
+
+        <th style="width: 200px">
+          <input
+            pInputText
+            type="text"
+            #addressInput
+            (input)="filterAddress($event)"
+            placeholder="Search by address"
+            class="p-column-filter"
+          />
+        </th>
+
+        <th style="width: 200px">
+          <p-dropdown
+            [options]="dataZipcode"
+            (onChange)="dt.filter($event.value, 'zipcode', 'equals')"
+            styleClass="p-column-filter"
+            placeholder="Select"
+            [showClear]="true"
+            optionLabel="code"
+            optionValue="code"
+          >
+          </p-dropdown>
+        </th>
+
+        <th style="width: 200px">
+          <p-dropdown
+            [options]="dataAllCompany"
+            (onChange)="dt.filter($event.value, 'company', 'equals')"
+            styleClass="p-column-filter"
+            placeholder="Select"
+            [showClear]="true"
+          >
+          </p-dropdown>
+        </th>
+
+        <th alignFrozen="right" style="width: 8rem" pFrozenColumn></th>
+      </tr>
+    </ng-template>
+
+    <!-- body content table -->
+    <ng-template pTemplate="body" let-customer>
+      <tr
+        [ngClass]="customer.age > 15 ? 'styleAgeOver15' : ''"
+        class="p-selectable-row"
+      >
+        <td pFrozenColumn>
+          <p-tableCheckbox
+            [value]="customer"
+            (click)="handleCheckbox($event)"
+          ></p-tableCheckbox>
+        </td>
+
+        <td pFrozenColumn style="width: 200px">
+          <span class="p-column-title">Name</span>
+          {{ customer.name }}
+        </td>
+        <td style="width: 200px">
+          <span class="p-column-title">Mail</span>
+          {{ customer.mail }}
+        </td>
+        <td style="width: 200px">
+          <span class="p-column-title">Age</span>
+          <span class="image-text">{{ customer.age }}</span>
+        </td>
+
+        <td style="width: 200px">
+          <span class="p-column-title">Phone</span>
+          {{ customer.phone }}
+        </td>
+
+        <td style="width: 200px">
+          <span class="p-column-title">Address</span>
+          {{ customer.address }}
+        </td>
+
+        <td style="width: 200px">
+          <span class="p-column-title">Zipcode</span>
+          <span>{{ customer.zipcode }}</span>
+        </td>
+
+        <td style="width: 200px">
+          <span class="p-column-title">Company</span>
+          <span>{{ customer.company }}</span>
+        </td>
+
+        <td style="text-align: center" alignFrozen="right" pFrozenColumn>
+          <!-- //sidebar edit -->
+          <p-sidebar
+            [(visible)]="visibleSidebarEdit"
+            position="right"
+            [baseZIndex]="10000"
+            styleClass="p-sidebar-md"
+            [modal]="false"
+            [showCloseIcon]="false"
+          >
+            <app-edit-user
+              *ngIf="visibleSidebarEdit"
+              (sidebarEdit)="receiveValueSidebarEdit($event)"
+              [dataCompanyGroup]="dataCompanyGroup"
+              [dataZipcode]="dataZipcode"
+            ></app-edit-user>
+          </p-sidebar>
+
+          <button
+            pButton
+            type="button"
+            class="btn-edit mr-2"
+            icon="pi pi-user-edit"
+            (click)="onShowEdit(customer.id)"
+          ></button>
+
+          <p-confirmPopup
+            [showTransitionOptions]="'100ms'"
+            [hideTransitionOptions]="'100ms'"
+          ></p-confirmPopup>
+          <p-toast
+            [showTransitionOptions]="'100ms'"
+            [hideTransitionOptions]="'100ms'"
+            [key]="'remove' + customer.id"
+          ></p-toast>
+
+          <button
+            (click)="confirmRemove($event, customer.id)"
+            pButton
+            class="btn-delete"
+            icon="pi pi-trash"
+          ></button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">No customers found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</section>

@@ -1,0 +1,36 @@
+@import '../../../../assets/common/scss/variables.scss';
+
+
+
+.sidebar {
+  .logo {
+    padding: 10px;
+    img {
+      width: 100%;
+    }
+  }
+  .menu {
+    ::ng-deep .list__menu {
+      width: 100%;
+      border: none;
+      border-radius: unset;
+      background-color: transparent;
+    }
+    ::ng-deep .p-menu {
+      .p-menuitem-link {
+        .p-menuitem-text,
+        .p-menuitem-icon {
+          color: white;
+          font-weight: $fw-600;
+          font-size: $fs18;
+        }
+        &:hover {
+          .p-menuitem-text,
+          .p-menuitem-icon {
+            color: $color-text;
+          }
+        }
+      }
+    }
+  }
+}

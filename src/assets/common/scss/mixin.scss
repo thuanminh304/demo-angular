@@ -1,0 +1,22 @@
+@import './variables.scss';
+
+@mixin loader {
+  border: 3px solid $color-btn-create; /* Light grey */
+  border-top: 3px solid $color-transparent; /* Blue */
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+  animation: spin 1s linear 1;
+  opacity: 0;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
