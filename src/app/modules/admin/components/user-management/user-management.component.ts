@@ -17,18 +17,10 @@ import {
 import { Table } from 'primeng/table';
 import {
   combineLatest,
-  combineLatestAll,
-  concatAll,
   forkJoin,
-  fromEvent,
-  interval,
   map,
-  mergeAll,
-  observable,
   Observable,
   Subject,
-  takeUntil,
-  tap,
 } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { AdminService } from '../../../../services/admin.service';
@@ -170,7 +162,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
         },
         (err:HttpErrorResponse) => {
           if(err.message.includes('zipcode')){
-            alert('zipcode invalid')
+            console.log('zipcode invalid')
           }
         }
       );
@@ -186,13 +178,13 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       },
       (err:HttpErrorResponse) => {
         if(err.message.includes('company')){
-          alert('company invalid')
+          console.log('company invalid')
         }
         if(err.message.includes('companyGroup')){
-          alert('companyGroup invalid')
+          console.log('companyGroup invalid')
         }
         if(err.message.includes('user')){
-          alert('user invalid')
+          console.log('user invalid')
         }
       }
     );
@@ -200,9 +192,9 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     this.primengConfig.ripple = true;
 
     this.searchService.listAllUser$.subscribe((data: IUserModel[]) => {
-      if (data.length !== 0) {
+      console.log(data.length)
+      this.loading=false
         this.customers = data;
-      }
     });
   }
 
@@ -218,6 +210,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     const index = this.customers.findIndex((user) => {
       return user.id === idUser;
     });
+
     if (index !== -1) {
       this.confirmationService.confirm({
         target: event.target,
@@ -309,6 +302,13 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   }
 
   applyFilter(evt: any, field: string) {
+console.log(evt.target.value)
+if(evt.target.value){
+  setTimeout(()=>{
+    this.loading = true;
+
+  },1000)
+}
     const searchText = evt.target.value.trim();
     this.router.navigate(['/admin/user'], {
       queryParams: {
@@ -318,7 +318,6 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       },
     });
     this.subject.next(searchText);
-    // this.loading = true;
   }
 
   //theo dõi giá trị input và tìm kiếm sau 1s
