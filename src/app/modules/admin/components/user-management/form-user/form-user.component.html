@@ -156,7 +156,7 @@
       <div class="field__item field__companyGroup">
         <h5>Company Group:</h5>
         <p-dropdown
-        *ngIf="isCreate && !isEdit"
+          *ngIf="isCreate && !isEdit"
           (onChange)="onChangeCG($event)"
           [options]="dataCompanyGroup"
           optionLabel="code"
@@ -202,7 +202,12 @@
       </div>
     </div>
 
-    <button pButton type="submit" style="margin-right: 30px">
+    <button
+      pButton
+      type="submit"
+      style="margin-right: 30px"
+      [disabled]="formUser.invalid"
+    >
       {{ isCreate && !isEdit ? "Create" : "Edit" }}
     </button>
     <button pButton class="p-button-secondary" (click)="onCancel($event)">
