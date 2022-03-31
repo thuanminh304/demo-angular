@@ -49,8 +49,8 @@ export class AdminService extends BaseService {
     return this.get<ICompanyModel[]>('company');
   }
 
-  getCompanyById(isCompanyGroup: string) {
-    return this.get<ICompanyModel>(`company/${isCompanyGroup}`);
+  getCompanyById(idCompanyGroup: string) {
+    return this.get<ICompanyModel>(`company/${idCompanyGroup}`);
   }
 
   getCompanyGroup() {

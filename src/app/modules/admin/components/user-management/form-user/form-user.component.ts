@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -15,7 +16,15 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { Subscription } from 'rxjs';
+import {
+  concat,
+  concatMap,
+  delay,
+  ErrorObserver,
+  mergeMap,
+  of,
+  Subscription,
+} from 'rxjs';
 import { AdminService } from '../../../../../services/admin.service';
 import {
   IZipcodeModel,
@@ -30,7 +39,7 @@ import {
   styleUrls: ['./form-user.component.scss'],
 })
 export class CreateNewComponent implements OnInit, OnDestroy {
-  @Output() visibleDialog= new EventEmitter<boolean>();
+  @Output() visibleDialog = new EventEmitter<boolean>();
   @Input() dataZipcode!: IZipcodeModel[];
   @Input() dataCompanyGroup!: ICompanyGroupModel[];
   @Input() isCreate: boolean = false;
@@ -73,39 +82,51 @@ export class CreateNewComponent implements OnInit, OnDestroy {
       company: '',
     });
 
-
     if (!this.isCreate && this.isEdit) {
-      this.idUser = this.activeRouter.snapshot.queryParams['idUser'];
       //gọi detail user để gán giá trị edit
+      this.idUser = this.activeRouter.snapshot.queryParams['idUser'];
+
       this.subUser = this.adminService
         .getDetailUser(this.idUser)
-        .subscribe((data: IUserModel) => {
-          this.detailUser = data;
-          console.log(this.detailUser);
+        .pipe(
+          concatMap((data: IUserModel) => {
+            this.detailUser = data;
 
-          this.adminService
-            .getCompanyById(this.detailUser?.companyGroup.id)
-            .subscribe((data: ICompanyModel) => {
-              this.dataDetailCompany = data?.company;
+            this.formUser = this.fb.group({
+              name: [
+                this.detailUser?.name,
+                Validators.compose([
+                  Validators.required,
+                  Validators.maxLength(10),
+                ]),
+              ],
+              age: [this.detailUser?.age, Validators.required],
+              address: this.detailUser?.address,
+              mail: [this.detailUser?.mail, Validators.required],
+              phone: [this.detailUser?.phone, this.validatePhone],
+              zipcode: [this.detailUser?.zipcode, Validators.required],
+              companyGroup: [
+                this.detailUser?.companyGroup,
+                Validators.required,
+              ],
+              company: [this.detailUser?.company, Validators.required],
             });
 
-          this.formUser = this.fb.group({
-            name: [
-              this.detailUser?.name,
-              Validators.compose([
-                Validators.required,
-                Validators.maxLength(10),
-              ]),
-            ],
-            age: [this.detailUser?.age, Validators.required],
-            address: this.detailUser?.address,
-            mail: [this.detailUser?.mail, Validators.required],
-            phone: [this.detailUser?.phone, this.validatePhone],
-            zipcode: [this.detailUser?.zipcode, Validators.required],
-            companyGroup: [this.detailUser?.companyGroup, Validators.required],
-            company: [this.detailUser?.company, Validators.required],
-          });
-        });
+            return this.adminService.getCompanyById(
+              this.detailUser?.companyGroup.id
+            );
+          })
+        )
+        .subscribe(
+          (company) => {
+            this.dataDetailCompany = company.company;
+          },
+          (err: HttpErrorResponse) => {
+            if (err.message.includes('company')) {
+              alert('company invalid');
+            }
+          }
+        );
     }
   }
 
@@ -113,17 +134,14 @@ export class CreateNewComponent implements OnInit, OnDestroy {
     return this.formUser.get('age');
   }
   onChangeCG(e: any) {
-    console.log(e);
     this.adminService.getCompanyById(e.value.id).subscribe((data: any) => {
       this.dataDetailCompany = data?.company;
-      console.log(this.dataDetailCompany);
     });
   }
 
   submitUser() {
     this.submitted = true;
     //loai bo khoang trang
-    console.log(this.formUser.value);
 
     if (this.formUser.valid) {
       this.formUser.patchValue({
@@ -134,6 +152,7 @@ export class CreateNewComponent implements OnInit, OnDestroy {
       if (this.formUser.value.age <= 16) {
         this.formUser.value.address = '';
       }
+      
       if (this.isCreate && !this.isEdit) {
         this.adminService.createNewUser(this.formUser.value).subscribe(() => {
           this.formUser.reset();

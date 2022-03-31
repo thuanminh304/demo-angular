@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -14,7 +15,21 @@ import {
 } from 'primeng/api';
 
 import { Table } from 'primeng/table';
-import { forkJoin, Observable, Subject } from 'rxjs';
+import {
+  combineLatest,
+  combineLatestAll,
+  concatAll,
+  forkJoin,
+  fromEvent,
+  interval,
+  map,
+  mergeAll,
+  observable,
+  Observable,
+  Subject,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { AdminService } from '../../../../services/admin.service';
 import {
@@ -55,14 +70,13 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
 
   pageSize: number = 5;
   pageCurrent: number = 1;
-  totalRecord!: number;
 
   displayModal!: boolean;
   isCreate: boolean = false;
   isEdit: boolean = false;
   headerCreate: string = 'Create New User';
   headerEdit: string = 'Edit User';
-  
+
   fieldName: any[] = [
     { field: 'name', input: true, viewchild: '#nameInput' },
     { field: 'mail', input: true, viewchild: '#mailInput' },
@@ -89,14 +103,12 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     private message: MessageService
   ) {}
   onPagi(e: any) {
-    console.log(e);
     const page = Math.ceil((e.first + 1) / e.rows);
     this.pageCurrent = page;
     this.pageSize = e.rows;
 
     //theo dõi queryparams để search theo đúng field
     this.activeRoute.queryParamMap.subscribe((data) => {
-      console.log(data);
 
       const field = data['keys'][0];
       if (field !== 'p' && data.has(field)) {
@@ -143,27 +155,52 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
 
     //get all user for first loading page
 
-    forkJoin({
-      zipcode1: this.adminService.getZipcode('1'),
-      zipcode2: this.adminService.getZipcode('2'),
-      companyGroup: this.adminService.getCompanyGroup(),
-      company: this.adminService.getAllCompany(),
-      allUser: this.adminService.getAllUser(),
-    }).subscribe(({ zipcode1, zipcode2, companyGroup, company, allUser }) => {
-      this.dataZipcode = [...zipcode1, ...zipcode2];
-      this.dataCompanyGroup = companyGroup;
-      company.map((company) => {
-        this.dataAllCompany.push(...company.company);
-      });
-      this.listALlUser = allUser;
-      this.totalRecord = this.listALlUser.length;
-    });
+    forkJoin([
+      this.adminService.getZipcode('1'),
+      this.adminService.getZipcode('2'),
+    ])
+      .pipe(
+        map(([zipcode1, zipcode2]) => {
+          return [...zipcode1, ...zipcode2];
+        })
+      )
+      .subscribe(
+        (data) => {
+          this.dataZipcode = data;
+        },
+        (err:HttpErrorResponse) => {
+          if(err.message.includes('zipcode')){
+            alert('zipcode invalid')
+          }
+        }
+      );
+
+    combineLatest([
+      this.adminService.getAllCompany(),
+      this.adminService.getCompanyGroup(),
+    ]).subscribe(
+      ([company, cg]) => {
+        this.dataCompanyGroup = cg;
+        company.map((company) => this.dataAllCompany.push(...company.company));
+        
+      },
+      (err:HttpErrorResponse) => {
+        if(err.message.includes('company')){
+          alert('company invalid')
+        }
+        if(err.message.includes('companyGroup')){
+          alert('companyGroup invalid')
+        }
+        if(err.message.includes('user')){
+          alert('user invalid')
+        }
+      }
+    );
 
     this.primengConfig.ripple = true;
 
     this.searchService.listAllUser$.subscribe((data: IUserModel[]) => {
       if (data.length !== 0) {
-        console.log('first');
         this.customers = data;
       }
     });
@@ -220,7 +257,6 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
         });
         this.getAllUser();
 
-        this.totalRecord = this.totalRecord - this.selectedCustomers.length;
 
         this.message.add({
           severity: 'success',
@@ -238,7 +274,6 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
 
   onShowEdit(idUser: string) {
     this.displayModal = true;
-    console.log(idUser);
     this.isCreate = false;
     this.isEdit = true;
     const index = this.customers.findIndex((item) => item.id === idUser);
@@ -256,13 +291,11 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     this.isCreate = true;
   }
   onHideDialog() {
-    console.log('first');
     this.displayModal = false;
     this.isEdit = false;
     this.isCreate = false;
   }
 
- 
   //filter global and field
   globalSearchUser(evt: any) {
     //xét lại valut field='' khi thực hiện search global

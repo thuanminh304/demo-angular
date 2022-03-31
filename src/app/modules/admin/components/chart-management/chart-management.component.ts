@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as c3 from 'c3';
+import { from, groupBy, map, mergeMap, Observable, toArray } from 'rxjs';
 import { AdminService } from 'src/app/services/admin.service';
 import { IUserModel } from '../../models/user.model';
 
